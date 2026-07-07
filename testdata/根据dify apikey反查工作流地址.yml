@@ -1,0 +1,237 @@
+app:
+  description: 根据dify apikey反查工作流地址
+  icon: 🤖
+  icon_background: '#FFEAD5'
+  mode: workflow
+  name: 根据dify apikey反查工作流地址
+  use_icon_as_answer_icon: false
+dependencies: []
+kind: app
+version: 0.3.0
+workflow:
+  conversation_variables: []
+  environment_variables: []
+  features:
+    file_upload:
+      allowed_file_extensions:
+      - .JPG
+      - .JPEG
+      - .PNG
+      - .GIF
+      - .WEBP
+      - .SVG
+      allowed_file_types:
+      - image
+      allowed_file_upload_methods:
+      - local_file
+      - remote_url
+      enabled: false
+      fileUploadConfig:
+        audio_file_size_limit: 500
+        batch_count_limit: 50
+        file_size_limit: 50
+        image_file_size_limit: 100
+        video_file_size_limit: 100
+        workflow_file_upload_limit: 200
+      image:
+        enabled: false
+        number_limits: 3
+        transfer_methods:
+        - local_file
+        - remote_url
+      number_limits: 3
+    opening_statement: ''
+    retriever_resource:
+      enabled: true
+    sensitive_word_avoidance:
+      enabled: false
+    speech_to_text:
+      enabled: false
+    suggested_questions: []
+    suggested_questions_after_answer:
+      enabled: false
+    text_to_speech:
+      enabled: false
+      language: ''
+      voice: ''
+  graph:
+    edges:
+    - data:
+        isInLoop: false
+        sourceType: start
+        targetType: code
+      id: 1776932130939-source-1776932173685-target
+      source: '1776932130939'
+      sourceHandle: source
+      target: '1776932173685'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: code
+      id: 1776932173685-source-1776933564022-target
+      source: '1776932173685'
+      sourceHandle: source
+      target: '1776933564022'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    - data:
+        isInLoop: false
+        sourceType: code
+        targetType: end
+      id: 1776933564022-source-1776934309522-target
+      source: '1776933564022'
+      sourceHandle: source
+      target: '1776934309522'
+      targetHandle: target
+      type: custom
+      zIndex: 0
+    nodes:
+    - data:
+        desc: ''
+        selected: false
+        title: 开始
+        type: start
+        variables:
+        - label: apikey
+          max_length: 48
+          options: []
+          required: true
+          type: text-input
+          variable: apikey
+        - label: token
+          max_length: 999999
+          options: []
+          required: true
+          type: paragraph
+          variable: token
+      height: 116
+      id: '1776932130939'
+      position:
+        x: 80
+        y: 282
+      positionAbsolute:
+        x: 80
+        y: 282
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "import requests\n\n\n\ndef main(token: str) -> dict:\n    page = 1\n\
+          \    limit = 100\n    all_ids = []\n    BASE_URL = \"https://agent.helport.ai/console/api/apps\"\
+          \n\n\n    headers = {\n        \"Authorization\": f\"{token}\"\n    }\n\
+          \    while True:\n        params = {\n            \"page\": page,\n    \
+          \        \"limit\": limit,\n            \"name\": \"\",\n            \"\
+          is_created_by_me\": \"false\"\n        }\n\n        resp = requests.get(BASE_URL,\
+          \ headers=headers, params=params)\n        resp.raise_for_status()\n   \
+          \     result = resp.json()\n\n        data = result.get(\"data\", [])\n\
+          \        ids = [item.get(\"id\") for item in data if item.get(\"id\")]\n\
+          \        all_ids.extend(ids)\n\n        if not result.get(\"has_more\",\
+          \ False):\n            break\n\n        page += 1\n    return {\n      \
+          \  \"result\": all_ids,\n    }\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          result:
+            children: null
+            type: array[string]
+        selected: false
+        title: 查所有的工作流/对话流
+        type: code
+        variables:
+        - value_selector:
+          - '1776932130939'
+          - token
+          variable: token
+      height: 54
+      id: '1776932173685'
+      position:
+        x: 418.0104064941406
+        y: 287.01041412353516
+      positionAbsolute:
+        x: 418.0104064941406
+        y: 287.01041412353516
+      selected: true
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        code: "import requests\ndef main(apikey: str,token: str, all_ids: list) ->\
+          \ dict:\n    BASE_URL = \"https://agent.helport.ai/console/api/apps\"\n\n\
+          \    headers = {\n        \"Authorization\": f\"{token}\"\n    }\n\n   \
+          \ apikey_tokens = []\n\n    for app_id in all_ids:\n        resp = requests.get(f\"\
+          {BASE_URL}/{app_id}/api-keys\", headers=headers)\n        resp.raise_for_status()\n\
+          \        result = resp.json()\n\n        for item in result.get(\"data\"\
+          , []):\n            if item.get(\"token\"):\n                api_token=item[\"\
+          token\"]\n                if api_token==apikey:\n                      \
+          \ return {\n                        \"result\": f\"https://agent.helport.ai/app/{app_id}/workflow\"\
+          ,\n                    }\n    \n        \n    return {\n        \"result\"\
+          : \"未找到\",\n    }\n"
+        code_language: python3
+        desc: ''
+        outputs:
+          result:
+            children: null
+            type: string
+        selected: false
+        title: app查key
+        type: code
+        variables:
+        - value_selector:
+          - '1776932130939'
+          - apikey
+          variable: apikey
+        - value_selector:
+          - '1776932173685'
+          - result
+          variable: all_ids
+        - value_selector:
+          - '1776932130939'
+          - token
+          variable: token
+      height: 54
+      id: '1776933564022'
+      position:
+        x: 742.0104064941406
+        y: 283.01041412353516
+      positionAbsolute:
+        x: 742.0104064941406
+        y: 283.01041412353516
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    - data:
+        desc: ''
+        outputs:
+        - value_selector:
+          - '1776933564022'
+          - result
+          variable: url
+        selected: false
+        title: 结束
+        type: end
+      height: 90
+      id: '1776934309522'
+      position:
+        x: 1087.5208129882812
+        y: 256.5208282470703
+      positionAbsolute:
+        x: 1087.5208129882812
+        y: 256.5208282470703
+      selected: false
+      sourcePosition: right
+      targetPosition: left
+      type: custom
+      width: 244
+    viewport:
+      x: -310.9085238033956
+      y: 153.95093503855793
+      zoom: 0.6435676967643362
